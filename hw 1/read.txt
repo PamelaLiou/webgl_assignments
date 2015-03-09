@@ -1,0 +1,3 @@
+Simple Graphing with Fragment Shader
+
+Worked with Karen Peng to turn a fragment shader into a graphing program. Sinoidal waves and fun things. 
