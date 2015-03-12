@@ -1,3 +1,6 @@
+//krazydad reference code, processing
+
+
   int   nbr_circles = 100;
   float angle_incr = 2*PI / nbr_circles;
   
