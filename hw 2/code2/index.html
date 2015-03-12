@@ -8,8 +8,8 @@ h3, p{
 <body bgcolor=black>
   <center>
     <h1>Array of Spheres</h1>
-    <canvas id='canvas1' width=800 height=800></canvas>
-    <canvas id='canvas2' width=800 height=800></canvas>
+    <canvas id='canvas1' width=350 height=350></canvas>
+    <canvas id='canvas2' width=350 height=350></canvas>
   </center>
 </body>
 
@@ -84,26 +84,35 @@ const float tau = pi * 2.;
       //W = D/ sqrt( dot(D, D));
       W = normalize(D);
       // YOU NEED TO SET r,g,b FOR material.
-      vec3 material = vec3(.6, .2, .8);
 
       // YOU NEED TO SET x,y,z AND r FOR sphere.
       // It works for one sphere:
-      // vec4 sphere = vec4(0., 0., sin(uTime), .3);
+      // vec4 sphere = vec4(0., 0., sin(uTime), .3);x
       // float t = raySphere(V, W, sphere);
       // if (t < 10000.) color = shadeSphere(V + t * W, sphere, material, Lrgb, Lpos);
       // But have error with multiple spheres:
-      const int sphereVar = 20;
+      const int sphereVar = 50;
       vec4 spheres[sphereVar]; // Note that I am explicitly setting the size of the array.
       // spheres[0] = vec4(.3, .3, .5, .3);
       // spheres[1] = vec4(-.3, -.3, .5, .3);
       // spheres[2] = vec4(.3, -.3, .5, .3);
       // spheres[3] = vec4(-.3, .3, .5, .3);
-      // spheres[4] = vec4(0., 0., .5, .3);
+
 
       for(int i = 0; i < sphereVar; i++){
         float iter = float(i);
 
-        spheres[i] = vec4(0.2 *sin(tau/float(sphereVar) *iter),0.2*cos(tau/float(sphereVar)*iter),sin(uTime*0.02*iter),.1*sin(uTime*0.02*iter));
+        vec3 ambient = vec3(.6*iter, .02*iter, .8);
+
+
+        spheres[i] = vec4(
+
+          (0.05+ 1./(uTime*0.1)*(uTime*0.02+(iter*0.009))) *sin(3.*tau/float(sphereVar) *iter+uTime*0.2),
+          (0.05+1./(uTime*0.1)*(uTime*0.02+(iter*0.009)))*cos(3.*tau/float(sphereVar)*iter+uTime*0.2),
+          sin(uTime*0.09*iter), 
+          .09*sin(uTime * 0.08*iter));
+
+
       }
 
 
@@ -137,9 +146,11 @@ const float tau = pi * 2.;
 
       for (int i = 0 ; i < sphereVar ; i++) { // and also the size of the loop.
          //spheres[i] = vec4(j, j, 0., .2);
-         float t = raySphere(V, W, spheres[i]);
+        // color = ambient;
 
-         if(t < minT) {
+        float t = raySphere(V, W, spheres[i]);
+
+        if(t < minT) {
           minT = t;
           closetSphereIndex = i;
           closetSphere = spheres[i];
@@ -148,10 +159,11 @@ const float tau = pi * 2.;
       }
 
       if (minT < 100000.){
-
         color = ambient;
 
         for(int j = 0; j < 4; j++){
+          //color = vec3(0.09,jz*0.01,1.0);
+
           color += shadeSphere(V + minT * W, closetSphere, Lrgbs[j], Lposs[j]);
 
         }
