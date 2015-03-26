@@ -1,0 +1,302 @@
+<html>
+
+<script src=lib1.js></script>
+
+
+<body><center>
+  <br>
+  <h1> Computer Graphics - Pamela Liou
+
+    <br>
+    <div id = "hw1">
+      <canvas id='canvas1' width='640' height='640'></canvas>
+    </div>
+
+
+    <br>
+    <div id = "hw2">
+      <canvas id='canvas2' width='640' height='640'></canvas>
+
+      <br>
+      <div id = "hw3">
+        <canvas id='canvas3' width='250' height='250'></canvas>
+
+        <br>
+        <div id = "hw4">
+          <canvas id='canvas4' width='640' height='640'></canvas>
+
+        </center>
+
+      </body>
+
+
+
+
+      <!-- Homework 1 -->
+      <script id='hw1_vertshader' type='x-shader/x-vertex'>
+      attribute vec3 aPosition;
+      varying   vec3 vPosition;
+      void main() {
+        gl_Position = vec4(aPosition, 1.0);
+        vPosition = aPosition;
+      }
+      </script>
+
+      <script id='hw1_fragshader' type='x-shader/x-fragment'>
+      precision mediump float;
+      uniform float uTime;
+      uniform vec3  uCursor;
+      varying vec3  vPosition;
+
+      void main() {
+
+       float pi = 3.14159265358979323846;
+
+       float t = log(abs(vPosition.x* vPosition.y));
+
+       float wavyY = cos(t*sin(uTime)*10.+10.);
+       float wavyX = sin(t*sin(uTime)*700.);
+
+       float y = vPosition.y;
+       float x = vPosition.x;
+       bool isReal = false;
+       if (floor(y*100.)==floor(10. *sin(x*10.*sin(uTime/ 20.)*100.))){
+         gl_FragColor = vec4(0.,0.,0.,1.);
+       }
+       else if (floor(y*100.)==floor(10. *sin((x+10.*10.*sin(uTime/ 20.)*100.)))-20.){
+   //isReal=true;
+   gl_FragColor = vec4(0.0,1., 0.0,1.);
+ }else if (floor(y*100.)==floor(10. *tan((x*10.*cos(uTime/ 20.)*100.)))+20.){
+   //isReal=true;
+   gl_FragColor = vec4(0.0,0.0, 1.0,1.);
+ }else if (floor(y*100.)==floor(10. *sin((x*10.*cos(sin(x*y*10.*uTime)/ 20.)*100.)))+40.){
+   //isReal=true;
+   gl_FragColor = vec4(1.0,0.0, 0.0,1.);
+ }
+
+
+ else{
+   gl_FragColor = vec4(1.,1.,1.,1.);
+ }
+
+
+ if(floor(y*100.)==floor(x*100.)){
+  gl_FragColor -= 0.2;
+}
+}
+</script>
+
+<!-- Homework 2 -->
+
+
+<script id='hw2_vertshader' type='x-shader/x-vertex'>
+attribute vec3 aPosition;
+varying   vec3 vPosition;
+void main() {
+  gl_Position = vec4(aPosition, 1.0);
+  vPosition = aPosition;
+}
+</script>
+
+<script id='hw2_fragshader' type='x-shader/x-fragment'>
+precision mediump float;
+uniform float uTime;
+uniform vec3  uCursor;
+varying vec3  vPosition;
+
+void main() {
+      vec3 color = vec3(0., 0., 0.);                    // Set background color black.
+      float x = vPosition.x;                            // Use only x and y coords of
+      float y = vPosition.y;                            //   the square's geometry.
+      float rr = (x * x + y * y) / pow(.5, 2.);         // Compute radius squared.
+      if (rr < 1.) {                                    // If pixel is on sphere:
+         float z = sqrt(1. - rr);                       //    compute z.
+         float t = .2 + .5 * max(0., x + y + z);        //    do shading.
+         //float zSlice = 1. - 3.3 * x + .5 * sin(uTime); //    check for slice.
+         //if (zSlice < z) {                              //    If pixel is on slice:
+            //z = zSlice;                                 //       adjust z,
+       //t = .6;              //       check for off shape,
+                                                 //       do flat shading.
+         color = vec3(t*sin(uTime*0.2), t, t);                         //    Make cool easter egg-like
+         //color.r *= 1. + .2 * sin(30. * (x + .5 * z + .03 * sin(20. * y))); // pattern.
+       }
+       gl_FragColor = vec4(color, 1.);
+     }
+     </script>
+
+<!-- Homework 3 -->
+
+<script id='hw3_vertshader' type='x-shader/x-vertex'>
+attribute vec3 aPosition;
+varying   vec3 vPosition;
+void main() {
+  gl_Position = vec4(aPosition, 1.0);
+  vPosition = aPosition;
+}
+</script>
+
+
+
+<script id='hw3_fragshader' type='x-shader/x-fragment'>
+precision mediump float;
+uniform float uTime;
+uniform vec3  uCursor;
+varying vec3  vPosition;
+const float pi = 3.14159265359;
+const float tau = pi * 2.;
+
+
+   // Compute intersection of a ray with a sphere, if any.  Return t.
+   // If there is no intersection, return 10000.
+   float raySphere(vec4 V, vec4 W, vec4 S) {
+      // YOU NEED TO COMPUTE t, BY SETTING UP AND THEN SOLVING A QUADRATIC EQUATION.
+      vec4 v = vec4(V.xyz - S.xyz, 0.);
+      float b = 2. * dot(v, W);
+      float c = dot(v, v) - S.w * S.w;
+      if(b * b - 4. * c >= 0.){
+       float root = ( -b - sqrt( b * b - 4. * c) )/ 2.;
+         //if(root >= 0.)
+         return root;
+       }
+       return 100000.;
+     }
+
+
+   // Diffusely shade a sphere.
+   // point is the x,y,z position of the surface point.
+   // sphere is the x,y,z,r definition of the sphere.
+   // material is the r,g,b color of the sphere.
+   vec3 shadeSphere(vec4 point, vec4 sphere, vec3 Lrgb, vec3 Lpos) {
+    vec3 color = vec3(0., 0., 0.);
+      //NORMAL
+      //vec3 normal = ( point - sphere.xyz ) / sphere.w;
+      vec3 normal = normalize(vec3(point.xyz - sphere.xyz));
+      // YOU NEED TO COMPUTE COLOR FOR A DIFFUSELY SHADED SPHERE.
+      // FOR THE AMBIENT COMPONENT OF THE DIFFUSE SHADING, YOU CAN
+      // USE A SIMPLE APPROXIMATION SUCH AS: ambient = material / 5.;
+      // vec3 ambient = material / 5.;
+      vec3 diffuse = vec3(.2, 1., .3);
+      //vec3 Ldir = normalize(vec3(1., 1., sin(uTime)*5.));
+      //color = ambient + diffuse * max(0., dot(normal, Ldir));
+      vec3 Ldir = normalize(vec3(Lpos - point.xyz));
+      // vec3 sum = Lrgb * diffuse * max(0., dot(normal, Ldirs[i]))
+      // color = ambient + sum;
+      vec3 sum = Lrgb * diffuse * max(0., dot(normal, Ldir)) + vec3(0., 0., 0.);
+      //color = ambient + sum;
+      return sum;
+      //return color;
+    }
+
+
+    void main(void) {
+      vec2 c = uCursor.xy;
+      //vec3 Ldir = normalize(vec3(c.x, c.y, 1. - 2. * dot(c, c)));
+      // YOU NEED TO COMPUTE V AND W TO CREATE THE RAY FOR THIS PIXEL,
+      // USING vPosition.x AND vPosition.y.
+      vec4 V, W;
+      //haha fl is very interesting!!!!
+      float fl = 15.;
+      V = vec4(0., 0., fl, 1.);
+      vec4 D = vec4(vPosition.x, vPosition.y, -fl, 0.);
+      //this is the same as
+      //W = D/ sqrt( dot(D, D));
+      W = normalize(D);
+      // YOU NEED TO SET r,g,b FOR material.
+
+      // YOU NEED TO SET x,y,z AND r FOR sphere.
+      // It works for one sphere:
+      // vec4 sphere = vec4(0., 0., sin(uTime), .3);x
+      // float t = raySphere(V, W, sphere);
+      // if (t < 10000.) color = shadeSphere(V + t * W, sphere, material, Lrgb, Lpos);
+      // But have error with multiple spheres:
+      const int sphereVar = 60;
+      vec4 spheres[sphereVar];
+
+      for(int i = 0; i < sphereVar; i++){
+        float iter = float(i);
+
+        vec3 ambient = vec3(.6*iter, .02*iter, .8);
+
+
+        spheres[i] = vec4(
+
+          (0.05+ 1./(2.*sin(uTime*0.05))*(uTime*0.02+(iter*0.009))) *sin(3.*tau/float(sphereVar) *iter+uTime*0.2),
+          (0.05+ 1./(2.* sin(uTime*0.05))*(uTime*0.02+(iter*0.009))) *cos(3.*tau/float(sphereVar)*iter+uTime*0.2),
+          sin(0.1*iter), 
+          .09*sin(0.1*iter));
+
+
+      }
+
+
+      vec3 Lrgbs[4];
+      vec3 Lposs[4];
+      Lrgbs[0] = vec3(1., .5*sin(uTime*0.4), 0.);
+      Lposs[0] = vec3(1., 1., 4.4);
+      Lrgbs[1] = vec3(0., 0., .5);
+      Lposs[1] = vec3(-1., 1., 5.);
+      Lrgbs[2] = vec3(1., 0., 0.);
+      Lposs[2] = vec3(1., 1., 5.);
+      Lrgbs[3] = vec3(1., .2, .8);
+      Lposs[3] = vec3(1., -1., 5.);
+      //Below is the code for making the array translate in a circle
+     //  float it = 0.;
+     //  for( int i = 0; i < sphereVar ; i ++){
+     //    float iter = float(i);
+     //    spheres[i].x += 0.2 * (sin((tau)/(float(sphereVar))+(uTime*0.2)));
+     //    spheres[i].y += 0.2 * (cos((tau)/(float(sphereVar))+(uTime*0.2)));
+     //   //it += .03;
+     // }
+     vec3 ambient = vec3(.02, .02, .02);
+
+
+     float minT = 10000000000.;
+     int closetSphereIndex;
+     vec4 closetSphere;
+
+     vec3 color = vec3(vPosition.y * -.04, vPosition.y * -.01, vPosition.y * .05 + .05);
+
+      for (int i = 0 ; i < sphereVar ; i++) { // and also the size of the loop.
+         //spheres[i] = vec4(j, j, 0., .2);
+        // color = ambient;
+
+        float t = raySphere(V, W, spheres[i]);
+
+        if(t < minT) {
+          minT = t;
+          closetSphereIndex = i;
+          closetSphere = spheres[i];
+        }
+
+      }
+
+      if (minT < 100000.){
+        color = ambient;
+
+        for(int j = 0; j < 4; j++){
+          //color = vec3(0.09,jz*0.01,1.0);
+
+          color += shadeSphere(V + minT * W, closetSphere, Lrgbs[j], Lposs[j]);
+
+        }
+      }
+      gl_FragColor = vec4(sqrt(color), 1.); // Do Gamma correction.
+    }
+
+    </script>
+
+     <script>
+     var canvasNum = 3;
+
+
+     for (var i = 1; i <= canvasNum; i ++){
+      start_gl('canvas'+i, document.getElementById('hw'+i+'_vertshader').innerHTML,
+       document.getElementById('hw'+i+'_fragshader').innerHTML);
+
+
+    }
+
+    </script>
+
+
+    </html>
